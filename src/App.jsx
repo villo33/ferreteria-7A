@@ -12,7 +12,7 @@ import Reportes from "./pages/Reportes";
 
 import { supabase } from "./services/supabase";
 
-import "./styles/app.css";
+import "./styles/App.css";
 
 
 function App() {
