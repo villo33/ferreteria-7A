@@ -1,0 +1,889 @@
+/* =========================================================
+   FERRETERÍA 7A - REPORTES
+========================================================= */
+
+.reportes-page {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 28px;
+  box-sizing: border-box;
+  color: #172033;
+}
+
+/* =========================================================
+   ENCABEZADO
+========================================================= */
+
+.reportes-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+
+.reportes-etiqueta {
+  display: inline-block;
+  margin-bottom: 7px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.reportes-header h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.reportes-header p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.btn-actualizar-reportes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 125px;
+  height: 42px;
+  padding: 0 17px;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.btn-actualizar-reportes:hover {
+  background: #f8fafc;
+  border-color: #b8c2d0;
+  box-shadow: 0 5px 15px rgba(15, 23, 42, 0.07);
+  transform: translateY(-1px);
+}
+
+.btn-actualizar-reportes:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   ALERTA
+========================================================= */
+
+.reporte-alerta {
+  margin-bottom: 20px;
+  padding: 14px 17px;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  border-radius: 10px;
+  background: #fff7f7;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   FILTROS
+========================================================= */
+
+.reportes-filtros {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) auto auto;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 20px 22px;
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.filtros-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filtros-titulo strong {
+  color: #172033;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.filtros-titulo span {
+  color: #7b8798;
+  font-size: 12px;
+}
+
+.filtros-rapidos {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.filtros-rapidos button {
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid #d8e0ea;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.filtros-rapidos button:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.filtros-rapidos button.activo {
+  border-color: #172033;
+  background: #172033;
+  color: #ffffff;
+}
+
+.filtros-fechas {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.campo-fecha {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo-fecha label {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.campo-fecha input {
+  width: 138px;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 9px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  outline: none;
+  background: #ffffff;
+  color: #334155;
+  font-family: inherit;
+  font-size: 12px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.campo-fecha input:focus {
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.1);
+}
+
+/* =========================================================
+   TARJETAS DE RESUMEN
+========================================================= */
+
+.reportes-resumen {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.reporte-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: 106px;
+  padding: 18px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid #e3e8ef;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.reporte-card::after {
+  content: "";
+  position: absolute;
+  right: -24px;
+  bottom: -28px;
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.025);
+  pointer-events: none;
+}
+
+.reporte-card-icono {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.reporte-card > div:last-child {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  width: 100%;
+  overflow: visible;
+}
+
+.reporte-card span {
+  display: block;
+  width: 100%;
+  margin-bottom: 6px;
+  color: #718096;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reporte-card strong {
+  display: block;
+  width: 100%;
+  margin: 0;
+  color: #172033;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.35px;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.reporte-ventas {
+  border-top: 3px solid #2563eb;
+}
+
+.reporte-ventas .reporte-card-icono {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.reporte-entradas {
+  border-top: 3px solid #16a34a;
+}
+
+.reporte-entradas .reporte-card-icono {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.reporte-productos {
+  border-top: 3px solid #7c3aed;
+}
+
+.reporte-productos .reporte-card-icono {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.reporte-inventario {
+  border-top: 3px solid #d97706;
+}
+
+.reporte-inventario .reporte-card-icono {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+/* =========================================================
+   GRID DE PANELES
+========================================================= */
+
+.reportes-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.reportes-grid-inferior {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* =========================================================
+   PANELES
+========================================================= */
+
+.reporte-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.reporte-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 19px 20px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.reporte-panel-header h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.reporte-panel-header p {
+  margin: 5px 0 0;
+  color: #7b8798;
+  font-size: 12px;
+}
+
+.reporte-contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.reporte-contador-alerta {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* =========================================================
+   TABLAS
+========================================================= */
+
+.reporte-tabla-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reporte-tabla {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.reporte-tabla thead th {
+  padding: 11px 20px;
+  border-bottom: 1px solid #e8edf3;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.reporte-tabla tbody td {
+  padding: 13px 20px;
+  border-bottom: 1px solid #f1f4f7;
+  color: #475569;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.reporte-tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.reporte-tabla tbody tr:hover {
+  background: #fafbfc;
+}
+
+.reporte-tabla td strong {
+  color: #172033;
+  font-weight: 800;
+}
+
+/* =========================================================
+   ID
+========================================================= */
+
+.reporte-tabla th:first-child,
+.reporte-tabla td:first-child {
+  min-width: 70px;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   FECHA
+========================================================= */
+
+.reporte-tabla th:nth-child(2),
+.reporte-tabla td:nth-child(2) {
+  min-width: 105px;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   CLIENTE / PROVEEDOR
+========================================================= */
+
+.reporte-tabla th:nth-child(3),
+.reporte-tabla td:nth-child(3) {
+  min-width: 160px;
+  max-width: 280px;
+}
+
+/* =========================================================
+   MÉTODO DE PAGO
+========================================================= */
+
+.reporte-tabla th:nth-child(4),
+.reporte-tabla td:nth-child(4) {
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   VALORES NUMÉRICOS / PRECIOS / TOTALES
+========================================================= */
+
+.reporte-tabla th:last-child,
+.reporte-tabla td:last-child {
+  min-width: 150px;
+  width: 150px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.reporte-tabla td:last-child strong {
+  display: inline-block;
+  min-width: 125px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* =========================================================
+   CANTIDADES
+========================================================= */
+
+.reporte-tabla td:nth-child(5) {
+  min-width: 110px;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   MÉTODO
+========================================================= */
+
+.reporte-metodo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 82px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   BARRA DE DESPLAZAMIENTO
+========================================================= */
+
+.reporte-tabla-wrapper::-webkit-scrollbar {
+  height: 7px;
+}
+
+.reporte-tabla-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.reporte-tabla-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.reporte-tabla-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* =========================================================
+   STOCK BAJO
+========================================================= */
+
+.stock-lista {
+  padding: 4px 0;
+}
+
+.stock-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f4f7;
+}
+
+.stock-item:last-child {
+  border-bottom: none;
+}
+
+.stock-item:hover {
+  background: #fffafa;
+}
+
+.stock-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock-info strong {
+  overflow: hidden;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stock-info span {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.stock-cantidad {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.stock-cantidad strong {
+  color: #dc2626;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.stock-cantidad span {
+  margin-top: 2px;
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+/* =========================================================
+   SALIDAS
+========================================================= */
+
+.salidas-resumen {
+  padding: 4px 0;
+}
+
+.salida-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f4f7;
+}
+
+.salida-item:last-child {
+  border-bottom: none;
+}
+
+.salida-item:hover {
+  background: #fafbfc;
+}
+
+.salida-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.salida-item strong {
+  color: #334155;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.salida-item span:not(.salida-badge) {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.salida-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   ESTADOS VACÍOS
+========================================================= */
+
+.reporte-vacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 130px;
+  padding: 20px;
+  box-sizing: border-box;
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: center;
+}
+
+.reporte-vacio-ok {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+/* =========================================================
+   CARGANDO
+========================================================= */
+
+.reportes-cargando {
+  display: flex;
+  min-height: 400px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.reportes-cargando p {
+  margin: 14px 0 0;
+  font-size: 13px;
+}
+
+.reportes-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #334155;
+  border-radius: 50%;
+  animation: reportes-spin 0.8s linear infinite;
+}
+
+@keyframes reportes-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 1200px) {
+  .reportes-filtros {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .filtros-fechas {
+    justify-content: flex-start;
+  }
+
+  .reportes-resumen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reportes-grid,
+  .reportes-grid-inferior {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - TARJETAS MEDIANAS
+========================================================= */
+
+@media (max-width: 900px) {
+  .reportes-resumen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reporte-card {
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+
+  .reporte-card strong {
+    font-size: 19px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - MÓVIL
+========================================================= */
+
+@media (max-width: 700px) {
+  .reportes-page {
+    padding: 18px 14px;
+  }
+
+  .reportes-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .reportes-header h1 {
+    font-size: 27px;
+  }
+
+  .btn-actualizar-reportes {
+    width: 100%;
+  }
+
+  .reportes-filtros {
+    padding: 17px;
+    gap: 17px;
+  }
+
+  .filtros-rapidos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filtros-rapidos button {
+    width: 100%;
+  }
+
+  .filtros-fechas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .campo-fecha input {
+    width: 100%;
+  }
+
+  .reportes-resumen {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .reporte-card {
+    min-height: 95px;
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+
+  .reporte-card strong {
+    font-size: 20px;
+  }
+
+  .reporte-panel-header {
+    padding: 16px;
+  }
+
+  .reporte-tabla thead th,
+  .reporte-tabla tbody td {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .stock-item,
+  .salida-item {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - TELÉFONOS PEQUEÑOS
+========================================================= */
+
+@media (max-width: 430px) {
+  .filtros-fechas {
+    grid-template-columns: 1fr;
+  }
+
+  .reportes-header h1 {
+    font-size: 25px;
+  }
+
+  .reporte-card {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .reporte-card-icono {
+    width: 42px;
+    height: 42px;
+  }
+
+  .reporte-card strong {
+    font-size: 18px;
+    letter-spacing: -0.2px;
+  }
+
+  .reporte-card span {
+    font-size: 10px;
+  }
+}
