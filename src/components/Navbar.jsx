@@ -39,16 +39,6 @@ function Navbar({ paginaActual, cambiarPagina }) {
       </nav>
 
       <div className="sidebar-bottom">
-        <button
-          className={`menu-item ${
-            paginaActual === "configuracion" ? "activo" : ""
-          }`}
-          onClick={() => cambiarPagina("configuracion")}
-        >
-          <span className="menu-icon">⚙</span>
-          <span>Configuración</span>
-        </button>
-
         <div className="usuario-card">
           <div className="usuario-avatar">A</div>
 
