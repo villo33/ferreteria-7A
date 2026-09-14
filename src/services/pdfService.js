@@ -1,5 +1,14 @@
 import jsPDF from "jspdf";
 
+const LOGO_PATH = "/logo192.png";
+
+const COLOR_PRINCIPAL = [23, 32, 51];
+const COLOR_SECUNDARIO = [71, 85, 105];
+const COLOR_CLARO = [241, 245, 249];
+const COLOR_LINEA = [226, 232, 240];
+const COLOR_TEXTO = [30, 41, 59];
+const COLOR_ROJO = [185, 28, 28];
+
 function formatoMoneda(valor) {
   return new Intl.NumberFormat("es-CO", {
     style: "currency",
@@ -22,9 +31,7 @@ function formatoCantidad(valor) {
 }
 
 function formatoFecha(fecha) {
-  if (!fecha) {
-    return "";
-  }
+  if (!fecha) return "";
 
   const fechaObj = new Date(fecha);
 
@@ -38,6 +45,22 @@ function formatoFecha(fecha) {
   });
 }
 
+function formatoFechaCorta(fecha) {
+  if (!fecha) return "-";
+
+  const fechaObj = new Date(fecha);
+
+  if (Number.isNaN(fechaObj.getTime())) {
+    return "-";
+  }
+
+  return fechaObj.toLocaleDateString("es-CO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 function textoMetodoPago(metodo) {
   const metodos = {
     efectivo: "Efectivo",
@@ -46,17 +69,11 @@ function textoMetodoPago(metodo) {
     credito: "Crédito",
   };
 
-  return (
-    metodos[metodo] ||
-    metodo ||
-    "No especificado"
-  );
+  return metodos[metodo] || metodo || "No especificado";
 }
 
 function textoUnidad(unidad) {
-  if (!unidad) {
-    return "unidad";
-  }
+  if (!unidad) return "unidad";
 
   const unidades = {
     unidad: "unidad",
@@ -65,6 +82,8 @@ function textoUnidad(unidad) {
     metros: "metros",
     kilo: "kilo",
     kilos: "kilos",
+    gramo: "gramo",
+    gramos: "gramos",
     caja: "caja",
     cajas: "cajas",
     galon: "galón",
@@ -79,15 +98,281 @@ function textoUnidad(unidad) {
     rollos: "rollos",
     paquete: "paquete",
     paquetes: "paquetes",
+    par: "par",
+    pares: "pares",
   };
 
-  return (
-    unidades[String(unidad).toLowerCase()] ||
-    unidad
-  );
+  return unidades[String(unidad).toLowerCase()] || unidad;
 }
 
-export function generarComprobanteVentaPDF({
+async function cargarLogo() {
+  try {
+    const respuesta = await fetch(LOGO_PATH);
+
+    if (!respuesta.ok) {
+      throw new Error("No fue posible cargar el logo.");
+    }
+
+    const blob = await respuesta.blob();
+
+    return await new Promise((resolve, reject) => {
+      const lector = new FileReader();
+
+      lector.onloadend = () => resolve(lector.result);
+      lector.onerror = reject;
+
+      lector.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.warn(
+      "No se pudo cargar el logo. El PDF continuará sin logo.",
+      error
+    );
+
+    return null;
+  }
+}
+
+function dibujarEncabezadoVenta(
+  doc,
+  logo,
+  margen,
+  anchoPagina
+) {
+  const alto = 35;
+
+  doc.setFillColor(...COLOR_PRINCIPAL);
+
+  doc.roundedRect(
+    margen,
+    12,
+    anchoPagina - margen * 2,
+    alto,
+    4,
+    4,
+    "F"
+  );
+
+  if (logo) {
+    try {
+      doc.addImage(
+        logo,
+        "PNG",
+        margen + 5,
+        16,
+        25,
+        25
+      );
+    } catch (error) {
+      console.warn("No se pudo insertar el logo.", error);
+    }
+  }
+
+  const xTexto = logo ? margen + 36 : margen + 7;
+
+  doc.setTextColor(255, 255, 255);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+
+  doc.text(
+    "FERRETERÍA 7A",
+    xTexto,
+    25
+  );
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+
+  doc.text(
+    "Sistema de gestión de ferretería",
+    xTexto,
+    32
+  );
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+
+  doc.text(
+    "COMPROBANTE DE VENTA",
+    anchoPagina - margen - 6,
+    25,
+    {
+      align: "right",
+    }
+  );
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+
+  doc.text(
+    "Documento generado automáticamente",
+    anchoPagina - margen - 6,
+    32,
+    {
+      align: "right",
+    }
+  );
+
+  doc.setTextColor(...COLOR_TEXTO);
+}
+
+function dibujarEncabezadoReporte(
+  doc,
+  logo,
+  margen,
+  anchoPagina,
+  fechaInicio,
+  fechaFin
+) {
+  doc.setFillColor(...COLOR_PRINCIPAL);
+
+  doc.roundedRect(
+    margen,
+    12,
+    anchoPagina - margen * 2,
+    43,
+    4,
+    4,
+    "F"
+  );
+
+  if (logo) {
+    try {
+      doc.addImage(
+        logo,
+        "PNG",
+        margen + 5,
+        18,
+        29,
+        29
+      );
+    } catch (error) {
+      console.warn("No se pudo insertar el logo.", error);
+    }
+  }
+
+  const xTexto = logo ? margen + 40 : margen + 7;
+
+  doc.setTextColor(255, 255, 255);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+
+  doc.text(
+    "FERRETERÍA 7A",
+    xTexto,
+    27
+  );
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+
+  doc.text(
+    "Reporte general de gestión",
+    xTexto,
+    35
+  );
+
+  doc.setFontSize(8);
+
+  doc.text(
+    `Período: ${formatoFechaCorta(
+      fechaInicio
+    )} - ${formatoFechaCorta(fechaFin)}`,
+    xTexto,
+    43
+  );
+
+  doc.text(
+    `Generado: ${formatoFechaCorta(new Date())}`,
+    xTexto,
+    50
+  );
+
+  doc.setTextColor(...COLOR_TEXTO);
+}
+
+function dibujarPiePagina(
+  doc,
+  numeroPagina,
+  totalPaginas,
+  textoDerecho
+) {
+  const anchoPagina =
+    doc.internal.pageSize.getWidth();
+
+  const altoPagina =
+    doc.internal.pageSize.getHeight();
+
+  const margen = 18;
+
+  doc.setDrawColor(...COLOR_LINEA);
+
+  doc.line(
+    margen,
+    altoPagina - 19,
+    anchoPagina - margen,
+    altoPagina - 19
+  );
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+
+  doc.setTextColor(...COLOR_SECUNDARIO);
+
+  doc.text(
+    "Ferretería 7A",
+    margen,
+    altoPagina - 12
+  );
+
+  doc.text(
+    "Sistema de gestión",
+    anchoPagina / 2,
+    altoPagina - 12,
+    {
+      align: "center",
+    }
+  );
+
+  doc.text(
+    textoDerecho ||
+      `Página ${numeroPagina} de ${totalPaginas}`,
+    anchoPagina - margen,
+    altoPagina - 12,
+    {
+      align: "right",
+    }
+  );
+
+  doc.setTextColor(...COLOR_TEXTO);
+}
+
+function agregarPiesDePagina(
+  doc,
+  textoDerecho
+) {
+  const totalPaginas =
+    doc.internal.getNumberOfPages();
+
+  for (
+    let pagina = 1;
+    pagina <= totalPaginas;
+    pagina++
+  ) {
+    doc.setPage(pagina);
+
+    dibujarPiePagina(
+      doc,
+      pagina,
+      totalPaginas,
+      textoDerecho
+    );
+  }
+}
+
+export async function generarComprobanteVentaPDF({
   ventaId,
   fecha,
   cliente,
@@ -103,171 +388,162 @@ export function generarComprobanteVentaPDF({
     format: "a4",
   });
 
-  const margenIzquierdo = 18;
-  const anchoPagina = 210;
+  const logo = await cargarLogo();
+
+  const margen = 18;
+
+  const anchoPagina =
+    doc.internal.pageSize.getWidth();
+
+  const altoPagina =
+    doc.internal.pageSize.getHeight();
+
   const anchoUtil =
-    anchoPagina - margenIzquierdo * 2;
+    anchoPagina - margen * 2;
 
-  let y = 18;
+  let y = 56;
 
-  // ==========================================
-  // ENCABEZADO
-  // ==========================================
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-
-  doc.text(
-    "FERRETERÍA 7A",
-    margenIzquierdo,
-    y
+  dibujarEncabezadoVenta(
+    doc,
+    logo,
+    margen,
+    anchoPagina
   );
 
-  y += 8;
+  doc.setFillColor(...COLOR_CLARO);
 
-  doc.setFont("helvetica", "normal");
+  doc.roundedRect(
+    margen,
+    y,
+    anchoUtil,
+    35,
+    3,
+    3,
+    "F"
+  );
+
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
 
-  doc.text(
-    "Comprobante de venta",
-    margenIzquierdo,
-    y
-  );
-
-  doc.setDrawColor(180, 180, 180);
-
-  doc.line(
-    margenIzquierdo,
-    y + 5,
-    anchoPagina - margenIzquierdo,
-    y + 5
-  );
-
-  y += 15;
-
-  // ==========================================
-  // INFORMACIÓN DE LA VENTA
-  // ==========================================
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
+  doc.setTextColor(...COLOR_PRINCIPAL);
 
   doc.text(
     `Venta #${ventaId}`,
-    margenIzquierdo,
-    y
+    margen + 6,
+    y + 9
   );
 
-  y += 7;
-
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(8.5);
+
+  doc.setTextColor(...COLOR_TEXTO);
 
   doc.text(
     `Fecha: ${formatoFecha(fecha)}`,
-    margenIzquierdo,
-    y
+    margen + 6,
+    y + 17
   );
-
-  y += 6;
 
   doc.text(
     `Cliente: ${
       cliente?.trim() || "Cliente general"
     }`,
-    margenIzquierdo,
-    y
+    margen + 6,
+    y + 26
   );
-
-  y += 6;
 
   doc.text(
     `Método de pago: ${textoMetodoPago(
       metodoPago
     )}`,
-    margenIzquierdo,
-    y
+    112,
+    y + 17
   );
 
-  y += 12;
+  doc.text(
+    "Estado: Completada",
+    112,
+    y + 26
+  );
 
-  // ==========================================
-  // TABLA DE PRODUCTOS
-  // ==========================================
+  y += 46;
 
   const columnas = {
-    producto: margenIzquierdo,
-    cantidad: 103,
-    unidad: 122,
-    precio: 143,
-    total: 174,
+    producto: margen + 3,
+    cantidad: 105,
+    unidad: 123,
+    precio: 150,
+    total: 177,
   };
 
   const dibujarEncabezadoTabla = () => {
-    doc.setFillColor(235, 238, 243);
+    doc.setFillColor(...COLOR_PRINCIPAL);
 
-    doc.rect(
-      margenIzquierdo,
+    doc.roundedRect(
+      margen,
       y - 5,
       anchoUtil,
-      9,
+      10,
+      2,
+      2,
       "F"
     );
 
+    doc.setTextColor(255, 255, 255);
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
+    doc.setFontSize(8);
 
     doc.text(
-      "Producto",
+      "PRODUCTO",
       columnas.producto,
-      y
+      y + 1
     );
 
     doc.text(
-      "Cant.",
+      "CANT.",
       columnas.cantidad,
-      y
+      y + 1
     );
 
     doc.text(
-      "Unidad",
+      "UNIDAD",
       columnas.unidad,
-      y
+      y + 1
     );
 
     doc.text(
-      "Precio",
+      "PRECIO",
       columnas.precio,
-      y
+      y + 1
     );
 
     doc.text(
-      "Total",
+      "TOTAL",
       columnas.total,
-      y
+      y + 1
     );
 
-    y += 9;
+    y += 11;
+
+    doc.setTextColor(...COLOR_TEXTO);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
+    doc.setFontSize(8);
   };
 
   dibujarEncabezadoTabla();
-
-  // ==========================================
-  // DETALLES DE TODOS LOS PRODUCTOS
-  // ==========================================
 
   if (
     !Array.isArray(detalles) ||
     detalles.length === 0
   ) {
     doc.setFontSize(9);
+    doc.setTextColor(...COLOR_SECUNDARIO);
 
     doc.text(
       "No hay productos registrados en esta venta.",
-      margenIzquierdo,
+      margen,
       y
     );
 
@@ -279,13 +555,11 @@ export function generarComprobanteVentaPDF({
         detalle?.nombre ||
         "Producto";
 
-      const cantidad = Number(
-        detalle?.cantidad || 0
-      );
+      const cantidad =
+        Number(detalle?.cantidad) || 0;
 
-      const precio = Number(
-        detalle?.precio_unitario || 0
-      );
+      const precio =
+        Number(detalle?.precio_unitario) || 0;
 
       const subtotalProducto =
         Number(detalle?.subtotal) ||
@@ -302,10 +576,6 @@ export function generarComprobanteVentaPDF({
         detalle?.codigo ||
         "";
 
-      // ========================================
-      // INFORMACIÓN DEL PRODUCTO
-      // ========================================
-
       let textoProducto = nombre;
 
       if (codigo.trim()) {
@@ -319,25 +589,37 @@ export function generarComprobanteVentaPDF({
         );
 
       const altoFila = Math.max(
-        8,
-        lineasProducto.length * 4.5
+        9,
+        lineasProducto.length * 4.2
       );
 
-      // ========================================
-      // SALTO DE PÁGINA
-      // ========================================
-
-      if (y + altoFila > 270) {
+      if (
+        y + altoFila >
+        altoPagina - 40
+      ) {
         doc.addPage();
 
-        y = 20;
+        y = 24;
 
         dibujarEncabezadoTabla();
       }
 
-      // ========================================
-      // PRODUCTO
-      // ========================================
+      doc.setFillColor(
+        248,
+        250,
+        252
+      );
+
+      doc.rect(
+        margen,
+        y - 5,
+        anchoUtil,
+        altoFila,
+        "F"
+      );
+
+      doc.setTextColor(...COLOR_TEXTO);
+      doc.setFontSize(8);
 
       doc.text(
         lineasProducto,
@@ -345,19 +627,11 @@ export function generarComprobanteVentaPDF({
         y
       );
 
-      // ========================================
-      // CANTIDAD
-      // ========================================
-
       doc.text(
         formatoCantidad(cantidad),
         columnas.cantidad,
         y
       );
-
-      // ========================================
-      // UNIDAD
-      // ========================================
 
       doc.text(
         unidad,
@@ -365,19 +639,13 @@ export function generarComprobanteVentaPDF({
         y
       );
 
-      // ========================================
-      // PRECIO UNITARIO
-      // ========================================
-
       doc.text(
         formatoMoneda(precio),
         columnas.precio,
         y
       );
 
-      // ========================================
-      // TOTAL PRODUCTO
-      // ========================================
+      doc.setFont("helvetica", "bold");
 
       doc.text(
         formatoMoneda(subtotalProducto),
@@ -385,38 +653,37 @@ export function generarComprobanteVentaPDF({
         y
       );
 
+      doc.setFont("helvetica", "normal");
+
       y += altoFila;
 
-      // ========================================
-      // LÍNEA SEPARADORA
-      // ========================================
-
-      doc.setDrawColor(
-        225,
-        225,
-        225
-      );
+      doc.setDrawColor(...COLOR_LINEA);
 
       doc.line(
-        margenIzquierdo,
+        margen,
         y - 2,
-        anchoPagina - margenIzquierdo,
+        anchoPagina - margen,
         y - 2
       );
     }
   }
 
-  y += 8;
+  y += 10;
 
-  // ==========================================
-  // RESUMEN
-  // ==========================================
+  if (
+    y + 55 >
+    altoPagina - 35
+  ) {
+    doc.addPage();
+    y = 25;
+  }
 
-  const resumenX = 125;
-  const valorX = 172;
+  const resumenX = 127;
+  const valorX = anchoPagina - margen;
 
-  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...COLOR_SECUNDARIO);
 
   doc.text(
     "Subtotal:",
@@ -452,146 +719,100 @@ export function generarComprobanteVentaPDF({
 
   y += 9;
 
-  doc.setDrawColor(
-    120,
-    120,
-    120
-  );
+  doc.setDrawColor(...COLOR_LINEA);
 
   doc.line(
     resumenX,
     y - 4,
-    anchoPagina - margenIzquierdo,
+    valorX,
     y - 4
   );
 
-  doc.setFont(
-    "helvetica",
-    "bold"
+  doc.setFillColor(...COLOR_PRINCIPAL);
+
+  doc.roundedRect(
+    resumenX - 4,
+    y,
+    anchoPagina - margen - resumenX + 4,
+    15,
+    2,
+    2,
+    "F"
   );
 
-  doc.setFontSize(13);
+  doc.setTextColor(255, 255, 255);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
 
   doc.text(
-    "TOTAL:",
-    resumenX,
-    y + 4
+    "TOTAL",
+    resumenX + 3,
+    y + 10
   );
 
   doc.text(
     formatoMoneda(total),
-    valorX,
-    y + 4,
+    valorX - 3,
+    y + 10,
     {
       align: "right",
     }
   );
 
-  y += 15;
-
-  // ==========================================
-  // OBSERVACIONES
-  // ==========================================
+  y += 24;
 
   if (observaciones?.trim()) {
-    doc.setFont(
-      "helvetica",
-      "bold"
-    );
+    if (
+      y + 30 >
+      altoPagina - 35
+    ) {
+      doc.addPage();
+      y = 25;
+    }
 
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
 
+    doc.setTextColor(...COLOR_PRINCIPAL);
+
     doc.text(
-      "Observaciones:",
-      margenIzquierdo,
+      "Observaciones",
+      margen,
       y
     );
 
-    y += 5;
+    y += 6;
 
-    doc.setFont(
-      "helvetica",
-      "normal"
-    );
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
 
-    const observacionesLineas =
+    doc.setTextColor(...COLOR_TEXTO);
+
+    const lineas =
       doc.splitTextToSize(
         observaciones.trim(),
         anchoUtil
       );
 
     doc.text(
-      observacionesLineas,
-      margenIzquierdo,
+      lineas,
+      margen,
       y
     );
-
-    y +=
-      observacionesLineas.length *
-        4.5 +
-      8;
   }
 
-  // ==========================================
-  // PIE DEL COMPROBANTE
-  // ==========================================
-
-  const altoPagina = 297;
-
-  doc.setDrawColor(
-    200,
-    200,
-    200
+  agregarPiesDePagina(
+    doc,
+    `Venta #${ventaId}`
   );
-
-  doc.line(
-    margenIzquierdo,
-    altoPagina - 25,
-    anchoPagina - margenIzquierdo,
-    altoPagina - 25
-  );
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-  doc.setFontSize(8);
-
-  doc.text(
-    "Ferretería 7A",
-    margenIzquierdo,
-    altoPagina - 18
-  );
-
-  doc.text(
-    "Comprobante generado por el sistema de gestión",
-    anchoPagina / 2,
-    altoPagina - 18,
-    {
-      align: "center",
-    }
-  );
-
-  doc.text(
-    `Venta #${ventaId}`,
-    anchoPagina - margenIzquierdo,
-    altoPagina - 18,
-    {
-      align: "right",
-    }
-  );
-
-  // ==========================================
-  // GENERAR PDF
-  // ==========================================
 
   doc.save(
     `Comprobante-Venta-${ventaId}.pdf`
   );
 }
 
-export function generarReportePDF({
+export async function generarReportePDF({
   fechaInicio,
   fechaFin,
   ventas = [],
@@ -606,42 +827,73 @@ export function generarReportePDF({
     format: "a4",
   });
 
+  const logo = await cargarLogo();
+
   const margen = 15;
-  const anchoPagina = 210;
-  const anchoUtil = anchoPagina - margen * 2;
 
-  let y = 18;
+  const anchoPagina =
+    doc.internal.pageSize.getWidth();
 
-  const moneda = (valor) => {
-    return formatoMoneda(valor);
-  };
+  const altoPagina =
+    doc.internal.pageSize.getHeight();
 
-  const fechaCorta = (valor) => {
-    if (!valor) return "-";
+  const anchoUtil =
+    anchoPagina - margen * 2;
 
-    const fecha = new Date(valor);
+  let y = 64;
 
-    if (Number.isNaN(fecha.getTime())) {
-      return "-";
-    }
+  const valorInventario =
+    productos.reduce(
+      (total, producto) =>
+        total +
+        Number(producto.stock || 0) *
+          Number(producto.precio_compra || 0),
+      0
+    );
 
-    return fecha.toLocaleDateString("es-CO", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
+  const productosStockBajo =
+    productos.filter(
+      (producto) =>
+        Number(producto.stock || 0) <=
+        Number(producto.stock_minimo || 0)
+    );
 
-  const agregarTituloSeccion = (titulo, subtitulo = "") => {
-    if (y > 260) {
+  const totalOperaciones =
+    ventas.length +
+    entradas.length +
+    salidas.length;
+
+  dibujarEncabezadoReporte(
+    doc,
+    logo,
+    margen,
+    anchoPagina,
+    fechaInicio,
+    fechaFin
+  );
+
+  const agregarTituloSeccion = (
+    titulo,
+    subtitulo = ""
+  ) => {
+    if (
+      y + 22 >
+      altoPagina - 30
+    ) {
       doc.addPage();
-      y = 18;
+      y = 20;
     }
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
+    doc.setFontSize(12);
 
-    doc.text(titulo, margen, y);
+    doc.setTextColor(...COLOR_PRINCIPAL);
+
+    doc.text(
+      titulo,
+      margen,
+      y
+    );
 
     y += 5;
 
@@ -649,7 +901,13 @@ export function generarReportePDF({
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
 
-      doc.text(subtitulo, margen, y);
+      doc.setTextColor(...COLOR_SECUNDARIO);
+
+      doc.text(
+        subtitulo,
+        margen,
+        y
+      );
 
       y += 7;
     } else {
@@ -657,167 +915,109 @@ export function generarReportePDF({
     }
   };
 
-  const valorInventario = productos.reduce(
-    (total, producto) =>
-      total +
-      Number(producto.stock || 0) *
-        Number(producto.precio_compra || 0),
-    0
+  agregarTituloSeccion(
+    "Resumen del período",
+    "Indicadores principales de la operación"
   );
 
-  const productosStockBajo = productos.filter(
-    (producto) =>
-      Number(producto.stock || 0) <=
-      Number(producto.stock_minimo || 0)
+  const tarjetas = [
+    {
+      titulo: "VENTAS",
+      valor: formatoMoneda(totalVentas),
+    },
+    {
+      titulo: "ENTRADAS",
+      valor: formatoMoneda(totalEntradas),
+    },
+    {
+      titulo: "OPERACIONES",
+      valor: String(totalOperaciones),
+    },
+    {
+      titulo: "PRODUCTOS",
+      valor: String(productos.length),
+    },
+  ];
+
+  const anchoTarjeta =
+    (anchoUtil - 9) / 4;
+
+  tarjetas.forEach(
+    (tarjeta, index) => {
+      const x =
+        margen +
+        index * (anchoTarjeta + 3);
+
+      doc.setFillColor(...COLOR_CLARO);
+
+      doc.roundedRect(
+        x,
+        y,
+        anchoTarjeta,
+        25,
+        2,
+        2,
+        "F"
+      );
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+
+      doc.setTextColor(...COLOR_SECUNDARIO);
+
+      doc.text(
+        tarjeta.titulo,
+        x + 4,
+        y + 7
+      );
+
+      doc.setFontSize(9.5);
+
+      doc.setTextColor(...COLOR_PRINCIPAL);
+
+      doc.text(
+        tarjeta.valor,
+        x + 4,
+        y + 18
+      );
+    }
   );
 
-  const totalOperaciones =
-    ventas.length +
-    entradas.length +
-    salidas.length;
-
-  // ==========================================
-  // ENCABEZADO
-  // ==========================================
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-
-  doc.text(
-    "FERRETERÍA 7A",
-    margen,
-    y
-  );
-
-  y += 8;
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-
-  doc.text(
-    "Reporte general de gestión",
-    margen,
-    y
-  );
-
-  y += 7;
-
-  doc.setFontSize(9);
-
-  doc.text(
-    `Período: ${fechaCorta(fechaInicio)} - ${fechaCorta(fechaFin)}`,
-    margen,
-    y
-  );
-
-  y += 5;
-
-  doc.text(
-    `Generado: ${fechaCorta(new Date())}`,
-    margen,
-    y
-  );
-
-  y += 9;
-
-  doc.setDrawColor(180, 180, 180);
-
-  doc.line(
-    margen,
-    y,
-    anchoPagina - margen,
-    y
-  );
-
-  y += 12;
-
-  // ==========================================
-  // RESUMEN
-  // ==========================================
+  y += 35;
 
   agregarTituloSeccion(
-    "Resumen del período"
+    "Estado del inventario"
   );
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(9);
+
+  doc.setTextColor(...COLOR_TEXTO);
 
   doc.text(
-    `Ventas: ${moneda(totalVentas)}`,
+    `Valor del inventario: ${formatoMoneda(
+      valorInventario
+    )}`,
     margen,
     y
   );
 
   doc.text(
-    `Entradas: ${moneda(totalEntradas)}`,
-    105,
+    `Stock bajo: ${productosStockBajo.length} producto(s)`,
+    110,
     y
   );
 
-  y += 7;
-
-  doc.text(
-    `Ventas realizadas: ${ventas.length}`,
-    margen,
-    y
-  );
-
-  doc.text(
-    `Entradas registradas: ${entradas.length}`,
-    105,
-    y
-  );
-
-  y += 7;
-
-  doc.text(
-    `Salidas registradas: ${salidas.length}`,
-    margen,
-    y
-  );
-
-  doc.text(
-    `Total operaciones: ${totalOperaciones}`,
-    105,
-    y
-  );
-
-  y += 7;
-
-  doc.text(
-    `Productos activos: ${productos.length}`,
-    margen,
-    y
-  );
-
-  doc.text(
-    `Productos con stock bajo: ${productosStockBajo.length}`,
-    105,
-    y
-  );
-
-  y += 7;
-
-  doc.text(
-    `Valor actual del inventario: ${moneda(valorInventario)}`,
-    margen,
-    y
-  );
-
-  y += 13;
-
-  // ==========================================
-  // VENTAS
-  // ==========================================
+  y += 14;
 
   agregarTituloSeccion(
     "Ventas del período",
-    `Total: ${moneda(totalVentas)}`
+    `Total vendido: ${formatoMoneda(totalVentas)}`
   );
 
   if (ventas.length === 0) {
-    doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
+    doc.setTextColor(...COLOR_SECUNDARIO);
 
     doc.text(
       "No hay ventas registradas en este período.",
@@ -827,86 +1027,82 @@ export function generarReportePDF({
 
     y += 10;
   } else {
+    doc.setFillColor(...COLOR_PRINCIPAL);
+
+    doc.roundedRect(
+      margen,
+      y - 5,
+      anchoUtil,
+      9,
+      2,
+      2,
+      "F"
+    );
+
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
 
-    doc.text("ID", margen, y);
-    doc.text("Fecha", 30, y);
-    doc.text("Cliente", 63, y);
-    doc.text("Método", 130, y);
-    doc.text("Total", 174, y);
+    doc.text("ID", margen + 2, y + 1);
+    doc.text("FECHA", 30, y + 1);
+    doc.text("CLIENTE", 62, y + 1);
+    doc.text("MÉTODO", 130, y + 1);
+    doc.text("TOTAL", 174, y + 1);
 
-    y += 5;
+    y += 10;
 
-    doc.setFont("helvetica", "normal");
-
-    for (const venta of ventas.slice(0, 30)) {
-      if (y > 275) {
+    for (
+      const venta of ventas.slice(0, 30)
+    ) {
+      if (y > altoPagina - 30) {
         doc.addPage();
-        y = 18;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-
-        doc.text(
-          "Ventas del período",
-          margen,
-          y
-        );
-
-        y += 8;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-
-        doc.text("ID", margen, y);
-        doc.text("Fecha", 30, y);
-        doc.text("Cliente", 63, y);
-        doc.text("Método", 130, y);
-        doc.text("Total", 174, y);
-
-        y += 5;
-
-        doc.setFont("helvetica", "normal");
+        y = 20;
       }
 
-      const cliente =
-        venta.cliente?.trim() ||
-        "Consumidor final";
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...COLOR_TEXTO);
 
       doc.text(
         `#${venta.id}`,
-        margen,
+        margen + 2,
         y
       );
 
       doc.text(
-        fechaCorta(venta.fecha),
+        formatoFechaCorta(venta.fecha),
         30,
         y
       );
 
       doc.text(
-        cliente.substring(0, 30),
-        63,
+        (
+          venta.cliente ||
+          "Consumidor final"
+        ).substring(0, 30),
+        62,
         y
       );
 
       doc.text(
-        textoMetodoPago(venta.metodo_pago),
+        textoMetodoPago(
+          venta.metodo_pago
+        ),
         130,
         y
       );
 
+      doc.setFont("helvetica", "bold");
+
       doc.text(
-        moneda(venta.total),
+        formatoMoneda(venta.total),
         174,
         y
       );
 
-      y += 5;
+      y += 6;
 
-      doc.setDrawColor(230, 230, 230);
+      doc.setDrawColor(...COLOR_LINEA);
 
       doc.line(
         margen,
@@ -915,34 +1111,18 @@ export function generarReportePDF({
         y - 2
       );
     }
-
-    if (ventas.length > 30) {
-      y += 3;
-
-      doc.setFontSize(8);
-
-      doc.text(
-        `Se muestran 30 de ${ventas.length} ventas.`,
-        margen,
-        y
-      );
-
-      y += 8;
-    }
   }
 
-  // ==========================================
-  // ENTRADAS
-  // ==========================================
+  y += 7;
 
   agregarTituloSeccion(
     "Entradas del período",
-    `Total: ${moneda(totalEntradas)}`
+    `Total recibido: ${formatoMoneda(totalEntradas)}`
   );
 
   if (entradas.length === 0) {
-    doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
+    doc.setTextColor(...COLOR_SECUNDARIO);
 
     doc.text(
       "No hay entradas registradas en este período.",
@@ -952,55 +1132,49 @@ export function generarReportePDF({
 
     y += 10;
   } else {
+    doc.setFillColor(...COLOR_PRINCIPAL);
+
+    doc.roundedRect(
+      margen,
+      y - 5,
+      anchoUtil,
+      9,
+      2,
+      2,
+      "F"
+    );
+
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
 
-    doc.text("ID", margen, y);
-    doc.text("Fecha", 30, y);
-    doc.text("Proveedor", 70, y);
-    doc.text("Total", 174, y);
+    doc.text("ID", margen + 2, y + 1);
+    doc.text("FECHA", 30, y + 1);
+    doc.text("PROVEEDOR", 70, y + 1);
+    doc.text("TOTAL", 174, y + 1);
 
-    y += 5;
+    y += 10;
 
-    doc.setFont("helvetica", "normal");
-
-    for (const entrada of entradas.slice(0, 30)) {
-      if (y > 275) {
+    for (
+      const entrada of entradas.slice(0, 30)
+    ) {
+      if (y > altoPagina - 30) {
         doc.addPage();
-        y = 18;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-
-        doc.text(
-          "Entradas del período",
-          margen,
-          y
-        );
-
-        y += 8;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-
-        doc.text("ID", margen, y);
-        doc.text("Fecha", 30, y);
-        doc.text("Proveedor", 70, y);
-        doc.text("Total", 174, y);
-
-        y += 5;
-
-        doc.setFont("helvetica", "normal");
+        y = 20;
       }
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...COLOR_TEXTO);
 
       doc.text(
         `#${entrada.id}`,
-        margen,
+        margen + 2,
         y
       );
 
       doc.text(
-        fechaCorta(entrada.fecha),
+        formatoFechaCorta(entrada.fecha),
         30,
         y
       );
@@ -1009,20 +1183,22 @@ export function generarReportePDF({
         (
           entrada.proveedor ||
           "Sin proveedor"
-        ).substring(0, 38),
+        ).substring(0, 40),
         70,
         y
       );
 
+      doc.setFont("helvetica", "bold");
+
       doc.text(
-        moneda(entrada.total),
+        formatoMoneda(entrada.total),
         174,
         y
       );
 
-      y += 5;
+      y += 6;
 
-      doc.setDrawColor(230, 230, 230);
+      doc.setDrawColor(...COLOR_LINEA);
 
       doc.line(
         margen,
@@ -1031,33 +1207,17 @@ export function generarReportePDF({
         y - 2
       );
     }
-
-    if (entradas.length > 30) {
-      y += 3;
-
-      doc.setFontSize(8);
-
-      doc.text(
-        `Se muestran 30 de ${entradas.length} entradas.`,
-        margen,
-        y
-      );
-
-      y += 8;
-    }
   }
 
-  // ==========================================
-  // SALIDAS
-  // ==========================================
+  y += 7;
 
   agregarTituloSeccion(
     "Salidas del período"
   );
 
   if (salidas.length === 0) {
-    doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
+    doc.setTextColor(...COLOR_SECUNDARIO);
 
     doc.text(
       "No hay salidas registradas en este período.",
@@ -1067,55 +1227,49 @@ export function generarReportePDF({
 
     y += 10;
   } else {
+    doc.setFillColor(...COLOR_PRINCIPAL);
+
+    doc.roundedRect(
+      margen,
+      y - 5,
+      anchoUtil,
+      9,
+      2,
+      2,
+      "F"
+    );
+
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
 
-    doc.text("ID", margen, y);
-    doc.text("Fecha", 30, y);
-    doc.text("Tipo", 70, y);
-    doc.text("Responsable", 125, y);
+    doc.text("ID", margen + 2, y + 1);
+    doc.text("FECHA", 30, y + 1);
+    doc.text("TIPO", 70, y + 1);
+    doc.text("RESPONSABLE", 125, y + 1);
 
-    y += 5;
+    y += 10;
 
-    doc.setFont("helvetica", "normal");
-
-    for (const salida of salidas.slice(0, 30)) {
-      if (y > 275) {
+    for (
+      const salida of salidas.slice(0, 30)
+    ) {
+      if (y > altoPagina - 30) {
         doc.addPage();
-        y = 18;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-
-        doc.text(
-          "Salidas del período",
-          margen,
-          y
-        );
-
-        y += 8;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-
-        doc.text("ID", margen, y);
-        doc.text("Fecha", 30, y);
-        doc.text("Tipo", 70, y);
-        doc.text("Responsable", 125, y);
-
-        y += 5;
-
-        doc.setFont("helvetica", "normal");
+        y = 20;
       }
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...COLOR_TEXTO);
 
       doc.text(
         `#${salida.id}`,
-        margen,
+        margen + 2,
         y
       );
 
       doc.text(
-        fechaCorta(salida.fecha),
+        formatoFechaCorta(salida.fecha),
         30,
         y
       );
@@ -1138,9 +1292,9 @@ export function generarReportePDF({
         y
       );
 
-      y += 5;
+      y += 6;
 
-      doc.setDrawColor(230, 230, 230);
+      doc.setDrawColor(...COLOR_LINEA);
 
       doc.line(
         margen,
@@ -1149,120 +1303,85 @@ export function generarReportePDF({
         y - 2
       );
     }
-
-    if (salidas.length > 30) {
-      y += 3;
-
-      doc.setFontSize(8);
-
-      doc.text(
-        `Se muestran 30 de ${salidas.length} salidas.`,
-        margen,
-        y
-      );
-    }
   }
 
-  // ==========================================
-  // STOCK BAJO
-  // ==========================================
-
   if (productosStockBajo.length > 0) {
-    y += 12;
+    y += 8;
 
     agregarTituloSeccion(
-      "Productos con stock bajo"
+      "Productos con stock bajo",
+      "Productos que requieren revisión o reposición"
     );
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFillColor(...COLOR_ROJO);
 
-    doc.text(
-      "Producto",
+    doc.roundedRect(
       margen,
-      y
+      y - 5,
+      anchoUtil,
+      9,
+      2,
+      2,
+      "F"
+    );
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+
+    doc.text(
+      "PRODUCTO",
+      margen + 2,
+      y + 1
     );
 
     doc.text(
-      "Código",
+      "CÓDIGO",
       105,
-      y
+      y + 1
     );
 
     doc.text(
-      "Stock",
+      "STOCK",
       145,
-      y
+      y + 1
     );
 
     doc.text(
-      "Mínimo",
+      "MÍNIMO",
       174,
-      y
+      y + 1
     );
 
-    y += 5;
+    y += 10;
 
-    doc.setFont("helvetica", "normal");
-
-    for (const producto of productosStockBajo.slice(0, 25)) {
-      if (y > 275) {
+    for (
+      const producto of productosStockBajo.slice(
+        0,
+        25
+      )
+    ) {
+      if (y > altoPagina - 30) {
         doc.addPage();
-        y = 18;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-
-        doc.text(
-          "Productos con stock bajo",
-          margen,
-          y
-        );
-
-        y += 8;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-
-        doc.text(
-          "Producto",
-          margen,
-          y
-        );
-
-        doc.text(
-          "Código",
-          105,
-          y
-        );
-
-        doc.text(
-          "Stock",
-          145,
-          y
-        );
-
-        doc.text(
-          "Mínimo",
-          174,
-          y
-        );
-
-        y += 5;
-
-        doc.setFont("helvetica", "normal");
+        y = 20;
       }
 
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...COLOR_TEXTO);
+
       doc.text(
-        String(producto.nombre || "Producto")
-          .substring(0, 38),
-        margen,
+        String(
+          producto.nombre || "Producto"
+        ).substring(0, 38),
+        margen + 2,
         y
       );
 
       doc.text(
-        String(producto.codigo || "-")
-          .substring(0, 15),
+        String(
+          producto.codigo || "-"
+        ).substring(0, 15),
         105,
         y
       );
@@ -1274,68 +1393,23 @@ export function generarReportePDF({
       );
 
       doc.text(
-        formatoCantidad(producto.stock_minimo),
+        formatoCantidad(
+          producto.stock_minimo
+        ),
         174,
         y
       );
 
-      y += 5;
+      y += 6;
     }
   }
 
-  // ==========================================
-  // PIE
-  // ==========================================
-
-  if (y > 265) {
-    doc.addPage();
-  }
-
-  const altoPagina = 297;
-
-  doc.setDrawColor(
-    200,
-    200,
-    200
+  agregarPiesDePagina(
+    doc,
+    `${formatoFechaCorta(
+      fechaInicio
+    )} - ${formatoFechaCorta(fechaFin)}`
   );
-
-  doc.line(
-    margen,
-    altoPagina - 25,
-    anchoPagina - margen,
-    altoPagina - 25
-  );
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-
-  doc.text(
-    "Ferretería 7A",
-    margen,
-    altoPagina - 18
-  );
-
-  doc.text(
-    "Reporte generado por el sistema de gestión",
-    anchoPagina / 2,
-    altoPagina - 18,
-    {
-      align: "center",
-    }
-  );
-
-  doc.text(
-    `${fechaCorta(fechaInicio)} - ${fechaCorta(fechaFin)}`,
-    anchoPagina - margen,
-    altoPagina - 18,
-    {
-      align: "right",
-    }
-  );
-
-  // ==========================================
-  // GUARDAR
-  // ==========================================
 
   doc.save(
     `Reporte-Ferreteria-7A-${fechaInicio}-${fechaFin}.pdf`
