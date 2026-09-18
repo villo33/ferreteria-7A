@@ -24,6 +24,7 @@ function App() {
 
   return (
     <div className="app">
+
       <Navbar
         paginaActual={paginaActual}
         cambiarPagina={cambiarPagina}
@@ -35,16 +36,22 @@ function App() {
 
           <div className="page-title">
 
-            <h2>
-              {paginaActual === "inicio"
-                ? "Panel principal"
-                : paginaActual.charAt(0).toUpperCase() +
-                  paginaActual.slice(1)}
-            </h2>
+            <div className="page-title-badge">
+              7A
+            </div>
 
-            <p>
-              Bienvenido al sistema de gestión de Ferretería 7A
-            </p>
+            <div>
+              <h2>
+                {paginaActual === "inicio"
+                  ? "Panel principal"
+                  : paginaActual.charAt(0).toUpperCase() +
+                    paginaActual.slice(1)}
+              </h2>
+
+              <p>
+                Bienvenido al sistema de gestión de Ferretería 7A
+              </p>
+            </div>
 
           </div>
 
@@ -58,11 +65,17 @@ function App() {
             </button>
 
             <div className="date-badge">
+
+              <span className="date-icon">
+                ◷
+              </span>
+
               {new Date().toLocaleDateString("es-CO", {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
               })}
+
             </div>
 
           </div>
@@ -131,6 +144,7 @@ function App() {
           )}
 
       </main>
+
     </div>
   );
 }
@@ -179,7 +193,6 @@ function Dashboard() {
     try {
 
       setCargando(true);
-
 
       const hoy = new Date();
 
@@ -257,10 +270,6 @@ function Dashboard() {
       const listaSalidas = salidasData || [];
 
 
-      /*
-        VENTAS DE HOY
-      */
-
       const totalVentasHoy = listaVentas.reduce(
         (total, venta) => {
           return total + Number(venta.total || 0);
@@ -270,17 +279,8 @@ function Dashboard() {
 
       setVentasHoy(totalVentasHoy);
 
-
-      /*
-        PRODUCTOS
-      */
-
       setProductos(listaProductos);
 
-
-      /*
-        STOCK BAJO
-      */
 
       const productosConStockBajo =
         listaProductos.filter((producto) => {
@@ -294,10 +294,6 @@ function Dashboard() {
 
       setStockBajo(productosConStockBajo);
 
-
-      /*
-        VALOR DEL INVENTARIO
-      */
 
       const valorTotalInventario =
         listaProductos.reduce(
@@ -317,10 +313,6 @@ function Dashboard() {
 
       setValorInventario(valorTotalInventario);
 
-
-      /*
-        ACTIVIDAD RECIENTE
-      */
 
       const actividades = [];
 
@@ -445,20 +437,66 @@ function Dashboard() {
 
   return (
 
-    <>
+    <div className="dashboard">
+
+      {/* =========================
+          BIENVENIDA
+      ========================= */}
+
+      <section className="dashboard-welcome">
+
+        <div>
+
+          <span className="welcome-label">
+            RESUMEN DEL DÍA
+          </span>
+
+          <h1>
+            Todo bajo control.
+          </h1>
+
+          <p>
+            Consulta rápidamente el estado de tu
+            ferretería y sus movimientos recientes.
+          </p>
+
+        </div>
+
+        <div className="welcome-decoration">
+
+          <div className="welcome-logo">
+            7A
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =========================
+          INDICADORES
+      ========================= */}
 
       <section className="dashboard-grid">
 
-        <div className="stat-card">
+        <div className="stat-card stat-card-primary">
 
           <div className="stat-header">
 
-            <span className="stat-title">
-              VENTAS DE HOY
-            </span>
+            <div>
+
+              <span className="stat-title">
+                VENTAS DE HOY
+              </span>
+
+              <span className="stat-caption">
+                Ingresos registrados
+              </span>
+
+            </div>
 
             <div className="stat-icon">
-              ▤
+              $
             </div>
 
           </div>
@@ -468,6 +506,8 @@ function Dashboard() {
           </div>
 
           <div className="stat-footer">
+
+            <span className="status-dot"></span>
 
             {ventasHoy > 0
               ? "Ventas realizadas hoy"
@@ -482,11 +522,19 @@ function Dashboard() {
 
           <div className="stat-header">
 
-            <span className="stat-title">
-              PRODUCTOS
-            </span>
+            <div>
 
-            <div className="stat-icon">
+              <span className="stat-title">
+                PRODUCTOS
+              </span>
+
+              <span className="stat-caption">
+                Catálogo activo
+              </span>
+
+            </div>
+
+            <div className="stat-icon stat-icon-blue">
               ▣
             </div>
 
@@ -507,11 +555,19 @@ function Dashboard() {
 
           <div className="stat-header">
 
-            <span className="stat-title">
-              STOCK BAJO
-            </span>
+            <div>
 
-            <div className="stat-icon">
+              <span className="stat-title">
+                STOCK BAJO
+              </span>
+
+              <span className="stat-caption">
+                Revisión necesaria
+              </span>
+
+            </div>
+
+            <div className="stat-icon stat-icon-red">
               !
             </div>
 
@@ -523,9 +579,17 @@ function Dashboard() {
 
           <div className="stat-footer">
 
-            {stockBajo.length > 0
-              ? "Requieren reposición"
-              : "Inventario en buen nivel"}
+            {stockBajo.length > 0 ? (
+              <>
+                <span className="status-dot status-dot-red"></span>
+                Requieren reposición
+              </>
+            ) : (
+              <>
+                <span className="status-dot"></span>
+                Inventario en buen nivel
+              </>
+            )}
 
           </div>
 
@@ -536,24 +600,30 @@ function Dashboard() {
 
           <div className="stat-header">
 
-            <span className="stat-title">
-              INVENTARIO
-            </span>
+            <div>
 
-            <div className="stat-icon">
-              $
+              <span className="stat-title">
+                INVENTARIO
+              </span>
+
+              <span className="stat-caption">
+                Valor de mercancía
+              </span>
+
+            </div>
+
+            <div className="stat-icon stat-icon-purple">
+              ◈
             </div>
 
           </div>
 
           <div className="stat-value">
-            {formatearMoneda(
-              valorInventario
-            )}
+            {formatearMoneda(valorInventario)}
           </div>
 
           <div className="stat-footer">
-            Valor de mercancía
+            Valor total a precio de compra
           </div>
 
         </div>
@@ -561,19 +631,33 @@ function Dashboard() {
       </section>
 
 
+      {/* =========================
+          CONTENIDO PRINCIPAL
+      ========================= */}
+
       <section className="dashboard-sections">
 
 
-        <div className="panel">
+        {/* STOCK */}
+
+        <div className="panel dashboard-panel">
 
           <div className="panel-header">
 
-            <h3>
-              Productos con stock bajo
-            </h3>
+            <div>
 
-            <span>
-              Inventario
+              <span className="panel-kicker">
+                INVENTARIO
+              </span>
+
+              <h3>
+                Productos con stock bajo
+              </h3>
+
+            </div>
+
+            <span className="panel-count">
+              {stockBajo.length}
             </span>
 
           </div>
@@ -583,31 +667,23 @@ function Dashboard() {
 
             {stockBajo.length === 0 ? (
 
-              <div className="stock-item">
+              <div className="empty-state">
 
-                <div className="product-info">
-
-                  <div className="product-icon">
-                    ✓
-                  </div>
-
-                  <div>
-
-                    <div className="product-name">
-                      No hay productos con stock bajo
-                    </div>
-
-                    <div className="product-category">
-                      El inventario se encuentra en buen nivel
-                    </div>
-
-                  </div>
-
+                <div className="empty-icon">
+                  ✓
                 </div>
 
-                <span className="stock-warning">
-                  0
-                </span>
+                <div>
+
+                  <strong>
+                    Inventario en buen estado
+                  </strong>
+
+                  <span>
+                    No hay productos que necesiten reposición.
+                  </span>
+
+                </div>
 
               </div>
 
@@ -628,7 +704,7 @@ function Dashboard() {
                         ▣
                       </div>
 
-                      <div>
+                      <div className="product-data">
 
                         <div className="product-name">
                           {producto.nombre}
@@ -639,7 +715,7 @@ function Dashboard() {
                           {producto.codigo ||
                             "Sin código"}
 
-                          {" · "}
+                          <span>•</span>
 
                           {producto.categoria ||
                             "Sin categoría"}
@@ -651,11 +727,17 @@ function Dashboard() {
                     </div>
 
 
-                    <span className="stock-warning">
+                    <div className="stock-number">
 
-                      {producto.stock}
+                      <strong>
+                        {producto.stock}
+                      </strong>
 
-                    </span>
+                      <span>
+                        disponibles
+                      </span>
+
+                    </div>
 
                   </div>
 
@@ -668,16 +750,26 @@ function Dashboard() {
         </div>
 
 
-        <div className="panel">
+        {/* ACTIVIDAD */}
+
+        <div className="panel dashboard-panel">
 
           <div className="panel-header">
 
-            <h3>
-              Actividad reciente
-            </h3>
+            <div>
 
-            <span>
-              Últimos movimientos
+              <span className="panel-kicker">
+                MOVIMIENTOS
+              </span>
+
+              <h3>
+                Actividad reciente
+              </h3>
+
+            </div>
+
+            <span className="panel-count">
+              {actividad.length}
             </span>
 
           </div>
@@ -687,20 +779,20 @@ function Dashboard() {
 
             {actividad.length === 0 ? (
 
-              <div className="activity">
+              <div className="empty-state">
 
-                <div className="activity-icon">
-                  ▤
+                <div className="empty-icon">
+                  ◷
                 </div>
 
-                <div className="activity-text">
+                <div>
 
                   <strong>
                     Sin movimientos todavía
                   </strong>
 
                   <span>
-                    Las ventas y movimientos aparecerán aquí.
+                    Las actividades aparecerán aquí.
                   </span>
 
                 </div>
@@ -712,7 +804,7 @@ function Dashboard() {
               actividad.map((item, index) => (
 
                 <div
-                  className="activity"
+                  className={`activity activity-${item.tipo}`}
                   key={`${item.tipo}-${item.fecha}-${index}`}
                 >
 
@@ -728,11 +820,13 @@ function Dashboard() {
 
                     <span>
                       {item.descripcion}
-                      {" · "}
-                      {formatearFecha(item.fecha)}
                     </span>
 
                   </div>
+
+                  <time>
+                    {formatearFecha(item.fecha)}
+                  </time>
 
                 </div>
 
@@ -746,7 +840,7 @@ function Dashboard() {
 
       </section>
 
-    </>
+    </div>
 
   );
 
